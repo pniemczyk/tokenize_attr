@@ -1,0 +1,35 @@
+module TokenizeAttr
+  VERSION: String
+
+  class Error < StandardError
+  end
+
+  class RetryExceededError < Error
+    def initialize: (Symbol | String attribute, Integer retries) -> void
+  end
+
+  # @api private
+  class Tokenizer
+    def self.apply: (
+      Class klass,
+      Symbol attribute,
+      generator: Proc?,
+      size: Integer,
+      prefix: String?,
+      retries: Integer
+    ) -> void
+  end
+
+  module Concern
+    module ClassMethods
+      # generator may be passed as a positional Proc OR as a block.
+      def tokenize: (
+        Symbol attribute,
+        ?Proc? generator,
+        ?size: Integer,
+        ?prefix: String?,
+        ?retries: Integer
+      ) ?{ (Integer) -> String } -> void
+    end
+  end
+end
