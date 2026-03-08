@@ -9,3 +9,11 @@ Style/StringLiteralsInInterpolation:
 
 Style/Documentation:
   Enabled: false
+
+Style/FormatStringToken:
+  Exclude:
+    - "lib/tasks/tokenize_attr.rake"
+
+Lint/ConstantDefinitionInBlock:
+  Exclude:
+    - "lib/tasks/tokenize_attr.rake"

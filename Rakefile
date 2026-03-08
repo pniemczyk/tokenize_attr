@@ -3,7 +3,9 @@
 require "bundler/gem_tasks"
 require "minitest/test_task"
 
-Minitest::TestTask.create
+Minitest::TestTask.create(:test) do |t|
+  t.test_globs = ["test/**/{test_*,*_test}.rb"]
+end
 
 require "rubocop/rake_task"
 

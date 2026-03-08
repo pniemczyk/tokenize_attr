@@ -4,6 +4,23 @@
 
 ---
 
+## Installation in a Rails app
+
+```bash
+rails tokenize_attr:install    # creates config/initializers/tokenize_attr.rb
+rails tokenize_attr:uninstall  # removes the initializer
+```
+
+The generated initializer wires the gem into ActiveRecord:
+
+```ruby
+ActiveSupport.on_load(:active_record) do
+  include TokenizeAttr::Concern
+end
+```
+
+---
+
 ## Basic (no prefix) — delegates to `has_secure_token`
 
 ```ruby

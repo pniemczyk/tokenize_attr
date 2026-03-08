@@ -27,22 +27,32 @@ unavailable), `tokenize` installs a `before_create` callback that:
 5. Retries up to `retries` times (default 3).
 6. Raises `TokenizeAttr::RetryExceededError` if all retries are exhausted.
 
+**Rails integration** is wired via an installer task. Running
+`rails tokenize_attr:install` generates
+`config/initializers/tokenize_attr.rb` which calls
+`ActiveSupport.on_load(:active_record)` to include `TokenizeAttr::Concern`
+into every `ActiveRecord::Base` subclass automatically.
+
 ---
 
 ## File map
 
-| File                              | Role                                                              |
-|-----------------------------------|-------------------------------------------------------------------|
-| `lib/tokenize_attr.rb`            | Entry point. Requires sub-files and registers the on_load hook.   |
-| `lib/tokenize_attr/version.rb`    | `TokenizeAttr::VERSION` constant.                                 |
-| `lib/tokenize_attr/errors.rb`     | `TokenizeAttr::Error` and `TokenizeAttr::RetryExceededError`.     |
-| `lib/tokenize_attr/tokenizer.rb`  | `TokenizeAttr::Tokenizer` — all token-generation logic (private). |
-| `lib/tokenize_attr/concern.rb`    | `TokenizeAttr::Concern` — thin concern with the `tokenize` macro. |
-| `test/test_helper.rb`             | In-memory SQLite setup, loads the gem.                            |
-| `test/test_tokenize_attr.rb`      | Full test suite.                                                  |
-| `sig/tokenize_attr.rbs`           | RBS type signatures.                                              |
-| `llms/overview.md`                | Internal design notes for LLMs.                                   |
-| `llms/usage.md`                   | Common usage patterns for LLMs.                                   |
+| File                                   | Role                                                              |
+|----------------------------------------|-------------------------------------------------------------------|
+| `lib/tokenize_attr.rb`                 | Entry point. Requires sub-files; loads Railtie when in Rails.     |
+| `lib/tokenize_attr/version.rb`         | `TokenizeAttr::VERSION` constant.                                 |
+| `lib/tokenize_attr/errors.rb`          | `TokenizeAttr::Error` and `TokenizeAttr::RetryExceededError`.     |
+| `lib/tokenize_attr/tokenizer.rb`       | `TokenizeAttr::Tokenizer` — all token-generation logic (private). |
+| `lib/tokenize_attr/concern.rb`         | `TokenizeAttr::Concern` — thin concern with the `tokenize` macro. |
+| `lib/tokenize_attr/installer.rb`       | `TokenizeAttr::Installer` — writes/removes the Rails initializer. |
+| `lib/tokenize_attr/railtie.rb`         | `TokenizeAttr::Railtie` — registers rake tasks in Rails.          |
+| `lib/tasks/tokenize_attr.rake`         | `tokenize_attr:install` and `tokenize_attr:uninstall` rake tasks. |
+| `test/test_helper.rb`                  | In-memory SQLite setup; simulates the installed initializer.      |
+| `test/test_tokenize_attr.rb`           | Full integration test suite.                                      |
+| `test/tokenize_attr/installer_test.rb` | Unit tests for `TokenizeAttr::Installer`.                         |
+| `sig/tokenize_attr.rbs`                | RBS type signatures.                                              |
+| `llms/overview.md`                     | Internal design notes for LLMs.                                   |
+| `llms/usage.md`                        | Common usage patterns for LLMs.                                   |
 
 ---
 
@@ -80,6 +90,14 @@ mixed into the user's model class. This eliminates any risk of method-name
 collisions for models that happen to define methods with similar names.
 `Concern` only exposes the single public `tokenize` macro.
 
+### Why use an installer task instead of an inline `on_load`?
+The installer pattern (also used by `inquiry_attrs`) gives host applications
+explicit, auditable control over when the concern is included. The generated
+initializer is checked into the host app's source control, making the
+integration visible and easy to remove or customise. An inline `on_load` in
+the gem's main file would silently include the concern on every `require`,
+which is less predictable in non-Rails contexts.
+
 ---
 
 ## Guardrails
@@ -94,6 +112,8 @@ collisions for models that happen to define methods with similar names.
   callers can handle it.
 - **Keep `TokenizeAttr::Tokenizer` methods private** (except `apply`). The
   class is `@api private`; only `apply` is the stable internal contract.
+- **`TokenizeAttr::Installer` must not depend on Rake or Rails**. All
+  file-system logic lives in plain Ruby so it can be unit-tested in isolation.
 
 ---
 
@@ -108,3 +128,8 @@ collisions for models that happen to define methods with similar names.
 - Model classes share `self.table_name = "records"` so the schema stays flat.
 - All column names used by test models must exist in the `records` table
   defined in `test/test_helper.rb`.
+- `test/test_helper.rb` simulates the initializer generated by
+  `rails tokenize_attr:install` by calling `ActiveSupport.on_load(:active_record)`
+  manually — no full Rails boot is required.
+- Installer tests in `test/tokenize_attr/installer_test.rb` use `Dir.mktmpdir`
+  to create a throwaway filesystem tree; no Rails environment is needed.

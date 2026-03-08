@@ -17,6 +17,22 @@ Add to your Gemfile:
 gem "tokenize_attr"
 ```
 
+Then run the install task to wire the gem into your Rails app:
+
+```bash
+rails tokenize_attr:install
+```
+
+This creates `config/initializers/tokenize_attr.rb`, which calls
+`ActiveSupport.on_load(:active_record)` so that every model gains the
+`tokenize` macro automatically.
+
+To remove the initializer:
+
+```bash
+rails tokenize_attr:uninstall
+```
+
 ## Usage
 
 ### Basic — delegates to `has_secure_token`
@@ -138,12 +154,13 @@ end
 
 ## Rails integration
 
-When loaded inside a Rails application `TokenizeAttr::Concern` is
-auto-included into `ActiveRecord::Base` via `ActiveSupport.on_load`, so
-every model gains the `tokenize` macro without an explicit include.
+Run `rails tokenize_attr:install` once after adding the gem. The generated
+initializer (`config/initializers/tokenize_attr.rb`) hooks into
+`ActiveSupport.on_load(:active_record)` so every model gains the `tokenize`
+macro without an explicit include.
 
-Outside of Rails (or with non-AR classes that provide `before_create` and
-`exists?`) include the concern manually:
+For non-Rails classes that provide `before_create` and `exists?` include the
+concern manually:
 
 ```ruby
 class MyModel

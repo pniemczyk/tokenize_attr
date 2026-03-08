@@ -21,3 +21,10 @@ end
 
 # Silence ActiveRecord query logging during tests.
 ActiveRecord::Base.logger = nil
+
+# Simulate what `rails tokenize_attr:install` puts in
+# config/initializers/tokenize_attr.rb so that the AR integration tests work
+# without a full Rails boot.
+ActiveSupport.on_load(:active_record) do
+  include TokenizeAttr::Concern
+end
