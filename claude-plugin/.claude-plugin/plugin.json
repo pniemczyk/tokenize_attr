@@ -1,0 +1,7 @@
+{
+  "name": "tokenize-attr",
+  "version": "1.0.0",
+  "description": "Claude Code skill for the tokenize_attr gem — declarative secure token generation for ActiveRecord model attributes.",
+  "author": "Pawel Niemczyk",
+  "homepage": "https://github.com/pniemczyk/token_attr"
+}

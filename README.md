@@ -178,6 +178,42 @@ add_column :access_tokens, :token, :string
 add_index  :access_tokens, :token, unique: true
 ```
 
+## Claude Code Plugin
+
+`tokenize_attr` ships with a Claude Code skill that teaches Claude how to install
+and use the gem in any Rails project.
+
+### Install the skill
+
+Download `tokenize-attr.skill` from the releases page and import it into Claude Code:
+
+```bash
+claude skill install tokenize-attr.skill
+```
+
+Or copy the `claude-plugin/` directory into your project:
+
+```bash
+cp -r /path/to/token_attr/claude-plugin /your/project/.claude-plugins/tokenize-attr
+```
+
+### What the skill teaches Claude
+
+Once installed, the skill activates automatically when you ask things like:
+
+- "Add tokenize_attr to this project"
+- "Add a prefixed token like `tok-abc123` to my model"
+- "Generate a secure API key with a custom prefix"
+- "Use `has_secure_token` with a prefix"
+- "Add a custom token generator in Rails"
+- "Handle `RetryExceededError` from tokenize_attr"
+
+Claude will know when `tokenize` delegates to `has_secure_token` vs. uses its
+own callback, how to use `prefix:`, `size:`, `retries:`, and custom generators,
+and how to write tests including collision simulation.
+
+---
+
 ## Development
 
 ```bash
